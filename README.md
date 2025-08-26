@@ -53,15 +53,28 @@ Hinweis zu YOLO: Lege dein Modell unter `model/m.pt` ab (relativ zum Repo‑Root
 
 
 ## Screenshots
-Die folgenden Screenshots liegen unter `docs/screenshots/` und zeigen die wichtigsten Ansichten/Schritte:
+Übersicht der wichtigsten Ansichten (kompakt dargestellt). Alle Dateien liegen unter `docs/screenshots/`.
 
-- Startmenü (leer): ![Startmenü leer](docs/screenshots/Bingo_Spiel_Startmenue_leer.png)
-- Startmenü (ausgefüllt): ![Startmenü ausgefüllt](docs/screenshots/Bingo_Spiel_Startmenue_mit_Daten.png)
-- Dateiauswahl beim Laden: ![Dateiauswahl](docs/screenshots/Bingo_Spiel_Dateiauswahl.png)
-- Karten geladen: ![Karten geladen](docs/screenshots/Bingo_Spiel_Karten_geladen.png)
-- Karten gespeichert: ![Karten gespeichert](docs/screenshots/Bingo_Spiel_Karten_gespeichert.png)
-- Karte und Statusseite: ![Karte und Status](docs/screenshots/Bingo_Spiel_Karte_und_Status.png)
-- Status‑Ansicht (Verteilung): ![Status Ansicht](docs/screenshots/Bingo_Spiel_Status_Ansicht.png)
+<div align="left">
+
+  <!-- Reihe 1 -->
+  <img src="docs/screenshots/Bingo_Spiel_Startmenue_leer.png" alt="Startmenü leer" title="Startmenü (leer)" width="300" />
+  <img src="docs/screenshots/Bingo_Spiel_Startmenue_mit_Daten.png" alt="Startmenü ausgefüllt" title="Startmenü (ausgefüllt)" width="300" />
+  <img src="docs/screenshots/Bingo_Spiel_Dateiauswahl.png" alt="Dateiauswahl" title="Dateiauswahl beim Laden" width="300" />
+
+  <br/>
+
+  <!-- Reihe 2 -->
+  <img src="docs/screenshots/Bingo_Spiel_Karten_geladen.png" alt="Karten geladen" title="Karten geladen" width="300" />
+  <img src="docs/screenshots/Bingo_Spiel_Karten_gespeichert.png" alt="Karten gespeichert" title="Karten gespeichert" width="300" />
+  <img src="docs/screenshots/Bingo_Spiel_Karte_und_Status.png" alt="Karte und Status" title="Karte und Statusseite" width="300" />
+
+  <br/>
+
+  <!-- Reihe 3 -->
+  <img src="docs/screenshots/Bingo_Spiel_Status_Ansicht.png" alt="Status-Ansicht" title="Status-Ansicht (Verteilung)" width="300" />
+
+</div>
 
 
 ## Troubleshooting
