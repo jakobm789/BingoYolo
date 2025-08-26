@@ -53,15 +53,15 @@ Hinweis zu YOLO: Lege dein Modell unter `model/m.pt` ab (relativ zum Repo‑Root
 
 
 ## Screenshots
-Lege deine Screenshots unter `docs/screenshots/` ab und ersetze die Platzhalter unten.
+Die folgenden Screenshots liegen unter `docs/screenshots/` und zeigen die wichtigsten Ansichten/Schritte:
 
-- Startbildschirm: ![Startbildschirm](docs/screenshots/start.png)
-- Karten generieren (Dialog ausgefüllt): ![Karten Generieren](docs/screenshots/generate.png)
-- Spielansicht (Zahlenraster, rechts Status): ![Spielansicht](docs/screenshots/game.png)
-- Kartenprüfung (Karten‑Popup mit Markierungen): ![Kartenprüfung](docs/screenshots/card.png)
-- Kameraerkennung (Livebild + Legende): ![Kamera](docs/screenshots/camera.png)
-
-Tipp: Unter Linux kannst du z. B. mit `gnome-screenshot` oder `spectacle` arbeiten; unter Windows `Win+Shift+S` (Snipping Tool); unter macOS `Cmd+Shift+4`.
+- Startmenü (leer): ![Startmenü leer](docs/screenshots/Bingo_Spiel_Startmenue_leer.png)
+- Startmenü (ausgefüllt): ![Startmenü ausgefüllt](docs/screenshots/Bingo_Spiel_Startmenue_mit_Daten.png)
+- Dateiauswahl beim Laden: ![Dateiauswahl](docs/screenshots/Bingo_Spiel_Dateiauswahl.png)
+- Karten geladen: ![Karten geladen](docs/screenshots/Bingo_Spiel_Karten_geladen.png)
+- Karten gespeichert: ![Karten gespeichert](docs/screenshots/Bingo_Spiel_Karten_gespeichert.png)
+- Karte und Statusseite: ![Karte und Status](docs/screenshots/Bingo_Spiel_Karte_und_Status.png)
+- Status‑Ansicht (Verteilung): ![Status Ansicht](docs/screenshots/Bingo_Spiel_Status_Ansicht.png)
 
 
 ## Troubleshooting
@@ -89,10 +89,4 @@ Tipp: Unter Linux kannst du z. B. mit `gnome-screenshot` oder `spectacle` arbeit
 - Portable Build (PyInstaller)
 
 
-## Screenshots selbst erstellen?
-In dieser Umgebung kann ich keine GUI‑Fenster öffnen oder auf eine Kamera zugreifen, daher kann ich hier keine Screenshots aufnehmen. Wenn du möchtest, kann ich:
-- einen kleinen „Screenshot speichern“-Button in die GUI einbauen (speichert das Fenster als Bild), oder
-- eine kurze Anleitung zur automatischen Aufnahme vorbereiten (z. B. via `ImageGrab`, abhängig vom OS).
-
-Sag mir, welche Variante du bevorzugst, dann setze ich es um.
-
+ 
