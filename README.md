@@ -53,38 +53,27 @@ Hinweis zu YOLO: Lege dein Modell unter `model/m.pt` ab (relativ zum Repo‑Root
 
 
 ## Screenshots
-Kurzanleitung (Schritt für Schritt). Die Galerie darunter folgt der Reihenfolge 1–7.
+Kurzanleitung (Schritt für Schritt). Die Bilder sind nummeriert und jeweils einzeln mit Überschrift dargestellt. Alle Dateien liegen unter `docs/screenshots/`.
 
-1. Startmenü öffnen (leer).
-2. Felder ausfüllen und „Bingo‑Karten generieren“ klicken.
-3. Beim Laden `.pkl` auswählen (Dateiauswahl).
-4. Karten sind geladen und sichtbar.
-5. Karten gespeichert bestätigen/prüfen.
-6. Karte öffnen und Statusseite ansehen.
-7. Status‑Ansicht: Verteilung der Bingos prüfen.
+1) Startmenü ausfüllen und Karten generieren
 
-Alle Dateien liegen unter `docs/screenshots/`.
+<img src="docs/screenshots/Bingo_Spiel_Startmenue_mit_Daten.png" alt="1) Startmenü (ausgefüllt)" title="1) Startmenü (ausgefüllt)" width="380" />
 
-<div align="left">
+2) Kartendatei zum Laden auswählen
 
-  <!-- Reihe 1 -->
-  <img src="docs/screenshots/Bingo_Spiel_Startmenue_leer.png" alt="Startmenü leer" title="1) Startmenü (leer)" width="260" style="margin-right:8px;margin-bottom:8px;" />
-  <img src="docs/screenshots/Bingo_Spiel_Startmenue_mit_Daten.png" alt="Startmenü ausgefüllt" title="2) Startmenü (ausgefüllt)" width="260" style="margin-right:8px;margin-bottom:8px;" />
-  <img src="docs/screenshots/Bingo_Spiel_Dateiauswahl.png" alt="Dateiauswahl" title="3) Dateiauswahl beim Laden" width="260" style="margin-right:8px;margin-bottom:8px;" />
+<img src="docs/screenshots/Bingo_Spiel_Dateiauswahl.png" alt="2) Dateiauswahl" title="2) Dateiauswahl" width="380" />
 
-  <br/>
+3) Karten erfolgreich geladen
 
-  <!-- Reihe 2 -->
-  <img src="docs/screenshots/Bingo_Spiel_Karten_geladen.png" alt="Karten geladen" title="4) Karten geladen" width="260" style="margin-right:8px;margin-bottom:8px;" />
-  <img src="docs/screenshots/Bingo_Spiel_Karten_gespeichert.png" alt="Karten gespeichert" title="5) Karten gespeichert" width="260" style="margin-right:8px;margin-bottom:8px;" />
-  <img src="docs/screenshots/Bingo_Spiel_Karte_und_Status.png" alt="Karte und Status" title="6) Karte und Statusseite" width="260" style="margin-right:8px;margin-bottom:8px;" />
+<img src="docs/screenshots/Bingo_Spiel_Karten_geladen.png" alt="3) Karten geladen" title="3) Karten geladen" width="380" />
 
-  <br/>
+4) Karte prüfen und Status einsehen
 
-  <!-- Reihe 3 -->
-  <img src="docs/screenshots/Bingo_Spiel_Status_Ansicht.png" alt="Status-Ansicht" title="7) Status‑Ansicht (Verteilung)" width="260" style="margin-right:8px;margin-bottom:8px;" />
+<img src="docs/screenshots/Bingo_Spiel_Karte_und_Status.png" alt="4) Karte und Status" title="4) Karte und Status" width="380" />
 
-</div>
+5) Überblick: Status‑Ansicht (Verteilung der Bingos)
+
+<img src="docs/screenshots/Bingo_Spiel_Status_Ansicht.png" alt="5) Status‑Ansicht" title="5) Status‑Ansicht" width="380" />
 
 
 ## Troubleshooting
