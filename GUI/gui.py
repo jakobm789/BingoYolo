@@ -12,6 +12,8 @@ import numpy as np
 from PIL import Image, ImageTk
 import threading
 from ultralytics import YOLO
+import sys
+import time
 
 class BingoGUI:
     def __init__(self, root):
@@ -509,6 +511,12 @@ class BingoGUI:
         # Variable zum Stoppen des Kamera-Threads
         self.stop_camera = False
 
+        # Zustandsvariablen für stabile Anzeige der erkannten Kartennummer
+        self.last_detection_time = 0.0
+        self.last_detected_card_number = None
+        self.last_info_text = ""
+        self.last_info_color = "black"
+
         # Event zum Schließen des Fensters
         self.camera_window.protocol("WM_DELETE_WINDOW", self.on_camera_window_close)
 
@@ -546,18 +554,64 @@ class BingoGUI:
         num_legend_items += 1
 
         # Anpassung der Canvas-Höhe entsprechend der Anzahl der Elemente
-        total_height = num_legend_items * legend_item_height + 10
+        # Höhe anhand der tatsächlich verwendeten Y-Position robuster bestimmen
+        total_height = max(y + 10, num_legend_items * legend_item_height + 10)
         self.legend_canvas.config(height=total_height)
 
     def on_camera_window_close(self):
         self.stop_camera = True
         self.camera_window.destroy()
 
+    def open_camera(self):
+        """Versucht, eine Kamera über mehrere Indizes und OS-spezifische Backends zu öffnen."""
+        # Mögliche Kamera-Indizes testen
+        indices = [0, 1, 2, 3]
+
+        # OS-spezifische Backends priorisieren
+        if sys.platform.startswith("linux"):
+            backends = [cv2.CAP_V4L2, 0]
+        elif sys.platform == "win32":
+            backends = [cv2.CAP_MSMF, cv2.CAP_DSHOW, 0]
+        elif sys.platform == "darwin":
+            backends = [cv2.CAP_AVFOUNDATION, 0]
+        else:
+            backends = [0]
+
+        def _try_configure(cap):
+            # Best-effort Konfiguration
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            if sys.platform.startswith("linux"):
+                try:
+                    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+                except Exception:
+                    pass
+
+        def _can_read(cap):
+            # Warmup und Testleseversuch
+            for _ in range(5):
+                cap.grab()
+            ret, _ = cap.read()
+            return ret
+
+        for idx in indices:
+            for backend in backends:
+                cap = cv2.VideoCapture(idx, backend) if backend != 0 else cv2.VideoCapture(idx)
+                if cap.isOpened():
+                    _try_configure(cap)
+                    if _can_read(cap):
+                        print(f"Kamera geöffnet: index={idx}, backend={backend}")
+                        return cap
+                cap.release()
+
+        return None
+
     def camera_loop(self):
-        model_path = './model/m.pt'  # Ersetzen Sie diesen Pfad durch den Pfad zu Ihrem Modell
+        model_path = '../Yolo/model/yolo12x-seg.pt'  # Ersetzen Sie diesen Pfad durch den Pfad zu Ihrem Modell
         model = YOLO(model_path)
 
-        confidence_threshold = 0.0  # 50%
+        confidence_threshold = 0.5  # 0%
 
         # Klassen aus dem Modell laden
         class_names = model.names  # Dictionary {class_id: class_name}
@@ -599,54 +653,107 @@ class BingoGUI:
         # Legende aktualisieren
         self.update_legend(class_names, color_dict)
 
-        # Zugriff auf die Webcam (Standardkamera)
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-
-        if not cap.isOpened():
-            print("Fehler beim Zugriff auf die Webcam.")
+        # Zugriff auf die Webcam (robust, mehrere Indizes/Backends)
+        cap = self.open_camera()
+        if cap is None:
+            print("Fehler beim Zugriff auf die Webcam (keine passende Kamera gefunden).")
+            # GUI-Fehlerdialog im Main-Thread anzeigen und Fenster schließen
+            def _notify():
+                try:
+                    messagebox.showerror("Fehler", "Fehler beim Zugriff auf die Webcam.\nKeine Kamera gefunden oder Zugriff verweigert.")
+                finally:
+                    if hasattr(self, "camera_window") and self.camera_window.winfo_exists():
+                        self.on_camera_window_close()
+            self.root.after(0, _notify)
             return  # Beende die Funktion, wenn die Kamera nicht geöffnet werden kann
 
+        reconnect_attempted = False
         while not self.stop_camera:
             ret, frame = cap.read()
             if not ret:
                 print("Fehler beim Lesen des Frames.")
+                # Einmaliger Neuverbindungsversuch
+                if not reconnect_attempted:
+                    reconnect_attempted = True
+                    cap.release()
+                    cap = self.open_camera()
+                    if cap is None:
+                        break
+                    else:
+                        continue
                 break
 
-            # Objekterkennung auf dem aktuellen Frame
-            results = model(frame)
+            # Objekterkennung auf dem aktuellen Frame; an Trainingsgröße 720 (→ 736) angepasst
+            results = model(frame, imgsz=736)
 
             # Listen für erkannte Objekte
             card_number_digits = []
             bingos_detected = 0
             nr_detected = False
 
-            # Durchlaufe die Erkennungsergebnisse und zeichne Bounding Boxes
+            # Durchlaufe die Erkennungsergebnisse und zeichne Instanzmasken (einmaliges Blending zur Vermeidung von Flackern)
             for result in results:
                 boxes = result.boxes
-                for box in boxes:
+                masks = getattr(result, 'masks', None)
+                masks_data = None
+                if masks is not None and getattr(masks, 'data', None) is not None:
+                    try:
+                        masks_data = masks.data.cpu().numpy()  # (N, H, W)
+                    except Exception:
+                        masks_data = None
+
+                # Sammle farbiges Overlay und Konturen, blende danach einmal
+                overlay = np.zeros_like(frame, dtype=np.uint8)
+                contours_to_draw = []
+
+                for i, box in enumerate(boxes):
                     x1, y1, x2, y2 = map(int, box.xyxy[0])
-                    confidence = box.conf[0]
+                    confidence = float(box.conf[0])
                     class_id = int(box.cls[0])
                     class_name = class_names[class_id]
                     color_rgb = color_dict[class_id]
                     color_bgr = (color_rgb[2], color_rgb[1], color_rgb[0])  # RGB zu BGR für OpenCV
 
                     if confidence > confidence_threshold:
-                        if class_name == 'Diagonal1':  # Diagonale von links oben nach rechts unten
-                            # Linie von (x1, y1) nach (x2, y2) zeichnen
-                            cv2.line(frame, (x1, y1), (x2, y2), color_bgr, 2)
-                            bingos_detected += 1
-                        elif class_name == 'Diagonal2':  # Diagonale von rechts oben nach links unten
-                            # Linie von (x2, y1) nach (x1, y2) zeichnen
-                            cv2.line(frame, (x2, y1), (x1, y2), color_bgr, 2)
-                            bingos_detected += 1
-                        else:
-                            # Zeichne Bounding Box ohne Label
-                            cv2.rectangle(frame, (x1, y1), (x2, y2), color_bgr, 2)
+                        mask_applied = False
+                        if masks_data is not None and i < len(masks_data):
+                            mask = masks_data[i]
+                            if mask is not None:
+                                # Binäre Maske und farbiges Overlay mit Transparenz
+                                mask_bin = (mask > 0.5).astype(np.uint8)  # (mh, mw)
+                                if mask_bin.any():
+                                    fh, fw = frame.shape[:2]
+                                    mh, mw = mask_bin.shape[:2]
+                                    if (mh, mw) != (fh, fw):
+                                        # Auf Frame-Größe skalieren
+                                        mask_bin = cv2.resize(mask_bin, (fw, fh), interpolation=cv2.INTER_NEAREST)
 
-                        # Verarbeitung der Erkennungen
+                                    # In Overlay sammeln
+                                    mask_bool = mask_bin.astype(bool)
+                                    overlay[mask_bool] = color_bgr
+
+                                    # Konturen vormerken
+                                    try:
+                                        mask_vis = (mask_bin * 255).astype(np.uint8)
+                                        contours, _ = cv2.findContours(mask_vis, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                                        contours_to_draw.extend(contours)
+                                    except Exception:
+                                        pass
+                                    mask_applied = True
+
+                        # Logik: Bingo-Zählung unabhängig von der Visualisierung/Maske
+                        if class_name in ('Diagonal1', 'Diagonal2'):
+                            bingos_detected += 1
+
+                        if not mask_applied:
+                            # Keine Box zeichnen (Anforderung: keine Bounding Boxes),
+                            # aber spezielle Klassen optional mit Linien visualisieren
+                            if class_name == 'Diagonal1':  # Diagonale von links oben nach rechts unten
+                                cv2.line(frame, (x1, y1), (x2, y2), color_bgr, 2)
+                            elif class_name == 'Diagonal2':  # Diagonale von rechts oben nach links unten
+                                cv2.line(frame, (x2, y1), (x1, y2), color_bgr, 2)
+
+                        # Verarbeitung der Erkennungen (Logik unabhängig von der Visualisierung)
                         if class_name == 'Nr.':
                             nr_detected = True
                         elif class_name.isdigit():
@@ -655,19 +762,27 @@ class BingoGUI:
                             card_number_digits.append((x_center, class_name))
                         elif class_name == 'Bingo':
                             bingos_detected += 1
-                        # Falls Sie weitere spezielle Klassen haben, können Sie hier entsprechende Aktionen hinzufügen
+
+                # Einmaliges Alpha-Blending nach allen Masken
+                if overlay.any():
+                    frame = cv2.addWeighted(overlay, 0.35, frame, 0.65, 0)
+                # Konturen nach dem Blending zeichnen
+                if contours_to_draw:
+                    cv2.drawContours(frame, contours_to_draw, -1, (0, 0, 0), 2)
 
 
-            # Wenn 'Nr.' erkannt wurde, die Kartennummer bestimmen
-            color = "black"
+            # Stabile Anzeige-Logik: erkannte Kartennummer mind. 3 Sekunden anzeigen
+            now = time.monotonic()
+            updated_label = False
             if nr_detected:
                 # Sortiere die Ziffern basierend auf ihrer x-Position
                 card_number_digits.sort(key=lambda tup: tup[0])
                 card_number = ''.join([digit for x, digit in card_number_digits])
 
-                # Überprüfen, ob die Kartennummer gültig ist
                 if card_number.isdigit():
                     card_num_int = int(card_number)
+                    info_text = ""
+                    color = "black"
                     if card_num_int in self.loaded_cards:
                         card = self.loaded_cards[card_num_int]
                         actual_bingos = self.is_bingo(card)
@@ -680,13 +795,27 @@ class BingoGUI:
                             color = "red"
                     else:
                         info_text = f"Kartennummer {card_number} nicht gefunden."
-                else:
-                    info_text = "Kartennummer konnte nicht erkannt werden."
-            else:
-                info_text = "Bitte halten Sie die Kartennummer ins Bild."
+                        color = "black"
 
-            # Aktualisieren der Anzeige
-            self.detected_info_label.config(text=info_text, fg=color)
+                    # Sofort aktualisieren und 3s halten
+                    self.detected_info_label.config(text=info_text, fg=color)
+                    self.last_detection_time = now
+                    self.last_detected_card_number = card_number
+                    self.last_info_text = info_text
+                    self.last_info_color = color
+                    updated_label = True
+                else:
+                    # Ungültige Ziffernfolge -> nicht sofort überschreiben, Timer laufen lassen
+                    pass
+
+            if not updated_label:
+                # Keine neue valide Nr. erkannt: halte letzte Anzeige min. 3s
+                if self.last_detection_time and (now - self.last_detection_time) < 3.0:
+                    # Nichts tun, Anzeige stabil lassen
+                    pass
+                else:
+                    # Nach 3s ohne neue Erkennung Standardhinweis anzeigen
+                    self.detected_info_label.config(text="Bitte halten Sie die Kartennummer ins Bild.", fg="black")
 
             # Resize Frame für die Anzeige auf 720p
             display_frame = cv2.resize(frame, (1280, 720))

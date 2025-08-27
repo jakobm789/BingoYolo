@@ -1,0 +1,74 @@
+# Global OS/editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.pytype/
+.pyre/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+*.venv
+
+# Build/dist artifacts
+build/
+dist/
+downloads/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+.eggs/
+wheels/
+share/python-wheels/
+
+# Coverage and test output
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Logs and temp
+*.log
+logs/
+tmp/
+temp/
+
+# Environment files/secrets
+.env
+.env.*
+*.env
+
+# YOLO/ML artifacts and large binaries
+Yolo/runs/
+Yolo/captured_images/
+Yolo/datasets/
+Yolo/model/
+wandb/
+*.pt
+*.onnx
+*.engine
+*.trt
+*.tflite
+
+# GUI generated artifacts
+GUI/Bingo_Karten/*.pdf
+GUI/Bingo_Karten/*.pkl
+
