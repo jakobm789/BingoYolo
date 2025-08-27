@@ -1,5 +1,9 @@
 # BingoYolo
 
+<video src="docs/screenshots/bingo.mp4" controls width="720">
+  Your browser does not support the video tag.
+</video>
+
 BingoYolo ist eine Desktop-Anwendung (Tkinter, Python), mit der du
 - Bingo‑Karten mit Datum/Uhrzeit als PDF generierst,
 - die generierten Karten lädst und ein Bingo‑Spiel verwaltest,
